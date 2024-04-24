@@ -49,20 +49,20 @@ for obs_noise in observation_noises:
     for q in q_values:
         Q = np.eye(4) * q
         R = np.diag([obs_noise, obs_noise])
-        true_trajectory = simulationTrajectory(numSteps, F, x0, Q)
-        observed_trajectory = observations_funct(H, true_trajectory, R, numSteps)
+        trajectory = simulationTrajectory(numSteps, F, x0, Q)
         x_estimate = x0
         P_estimate = P0
         estimated_trajectory = np.zeros((4, numSteps))
         estimated_trajectory[:, 0] = x_estimate
+        obstrajectory = observations_funct(H, trajectory, R, numSteps)
 
         for k in range(numSteps):
-            x_estimate, P_estimate = kalman_filter(F, x_estimate, P_estimate, Q, R, H, observed_trajectory[:, k])
+            x_estimate, P_estimate = kalman_filter(F, x_estimate, P_estimate, Q, R, H, obstrajectory[:, k])
             estimated_trajectory[:, k] = x_estimate
 
         plt.subplot(3, 3, plot_number)
-        plt.plot(true_trajectory[0, :], true_trajectory[2, :], 'k-', label='True Trajectory')
-        plt.scatter(observed_trajectory[0, :], observed_trajectory[1, :], color='red', label='Observed Trajectory', alpha=0.6)
+        plt.plot(trajectory[0, :], trajectory[2, :], 'k-', label='True Trajectory')
+        plt.scatter(obstrajectory[0, :], obstrajectory[1, :], color='red', label='Observed Trajectory', alpha=0.6)
         plt.plot(estimated_trajectory[0, :], estimated_trajectory[2, :], 'b--', label='Estimated Trajectory')
         plt.title(f'Process Noise: {q}, Observation Noise(R): {obs_noise}')
         plt.xlabel('Position X')
