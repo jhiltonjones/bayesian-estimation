@@ -1,13 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+from mpl_toolkits.mplot3d import Axes3D
 
 dt = 0.2
 totalTime = 4
 q = 0.01
 numSteps = int(totalTime/dt)
-sigma_px = 0.1
-sigma_py = 0.1
+sigma_px = 0.05
+sigma_py = 0.05
 x0 = np.array([0, 3, 0, 0])
 P0 = np.eye(4) * 10
 F = np.array([[1, dt, 0, 0],
@@ -77,56 +77,91 @@ for k in range(numSteps):
     euclidean_error_store_observation[k] = s
     x_estimate_store[:, k] = x_estimate
     P_estimate_store[:, :, k] = P_estimate
-plt.plot(trajectory[0, :], trajectory[2, :], 'b', label='True Trajectory')
-plt.plot(x_estimate_store[0, :], x_estimate_store[2, :], 'r--', label='Estimated Trajectory')
-plt.plot(observations[0, :], observations[1, :], c='r', label='Observations')
-plt.xlabel('Position in X')
-plt.ylabel('Position in Y')
-plt.legend()
-plt.title('Comparison of True and Estimated Trajectories in XY Plane')
-plt.grid(True)
+
+
+
+fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(18, 12))  
+
+axes[0, 0].plot(trajectory[0, :], trajectory[2, :], 'b', label='True Trajectory')
+axes[0, 0].plot(x_estimate_store[0, :], x_estimate_store[2, :], 'r--', label='Estimated Trajectory')
+axes[0, 0].plot(observations[0, :], observations[1, :], 'g', label='Observations')
+axes[0, 0].set_xlabel('Position in X')
+axes[0, 0].set_ylabel('Position in Y')
+axes[0, 0].legend()
+axes[0, 0].set_title('True and Estimated Trajectories')
+
+axes[0, 1].plot(observations[0, :], observations[1, :], 'r', label='Observations')
+axes[0, 1].set_xlabel('Position in X')
+axes[0, 1].set_ylabel('Position in Y')
+axes[0, 1].set_title('Observations in XY Plane')
+axes[0, 1].legend()
+
+axes[0, 2].plot(x_estimate_store[0, :], x_estimate_store[2, :], 'r--', label='Estimated Trajectory')
+axes[0, 2].set_xlabel('Position in X')
+axes[0, 2].set_ylabel('Position in Y')
+axes[0, 2].legend()
+axes[0, 2].set_title('Estimated Trajectories in XY Plane')
+
+axes[1, 0].plot(range(numSteps), euclidean_error_store_kalman, 'b', label='Kalman Filter Errors')
+axes[1, 0].set_xlabel('Time Step')
+axes[1, 0].set_ylabel('Euclidean Error')
+axes[1, 0].legend()
+axes[1, 0].set_title('Kalman Filter Errors Over Time')
+
+axes[1, 1].plot(range(numSteps), euclidean_error_store_observation, 'r', label='Observation Errors')
+axes[1, 1].set_xlabel('Time Step')
+axes[1, 1].set_ylabel('Error')
+axes[1, 1].set_title('Observation Errors Over Time')
+axes[1, 1].legend()
+
+axes[1, 2].plot(range(numSteps), euclidean_error_store_observation, 'r', label='Observation Sensor')
+axes[1, 2].plot(range(numSteps), euclidean_error_store_kalman, 'b', label='Kalman Filter')
+axes[1, 2].set_xlabel('Time Step')
+axes[1, 2].set_ylabel('Euclidean Error')
+axes[1, 2].set_title('Comparison of Errors')
+axes[1, 2].legend()
+
+plt.tight_layout()
 plt.show()
 
-plt.plot(observations[0, :], observations[1, :], c='r', label='Observations')
-plt.xlabel('Position in X')
-plt.ylabel('Position in Y')
-plt.title('Observations in XY Plane')
-plt.legend()
-plt.grid(True)
+
+q_values = np.linspace(0.005, 2, 100)  
+sigma_values = np.linspace(0.005, 1, 100) 
+
+average_kalman_errors = np.zeros((len(q_values), len(sigma_values)))
+
+for i, q in enumerate(q_values):
+    Q = q * np.array([[dt**3/3, dt**2/2, 0, 0],
+                      [dt**2/2, dt, 0, 0],
+                      [0, 0, dt**3/3, dt**2/2],
+                      [0, 0, dt**2/2, dt]])
+    trajectory = simulationTrajectory(numSteps, F, x0, Q)
+    for j, sigma in enumerate(sigma_values):
+        R = np.array([[sigma**2, 0],
+                      [0, sigma**2]])
+        observations = observations_funct(H, trajectory, R, numSteps)
+        x_estimate = x0
+        P_estimate = P0
+        euclidean_errors = []
+
+        for k in range(numSteps):
+            x_estimate, P_estimate, K, z = kalman_filter(F, x_estimate, P_estimate, Q, R, H, observations[:, k])
+            error = np.linalg.norm(trajectory[:2, k] - x_estimate[:2])  
+            euclidean_errors.append(error)
+
+        average_kalman_errors[i, j] = np.mean(euclidean_errors)
+
+Q, Sigma = np.meshgrid(q_values, sigma_values)
+
+fig = plt.figure(figsize=(10, 8))
+ax = fig.add_subplot(111, projection='3d')
+surf = ax.plot_surface(Q, Sigma, average_kalman_errors.T, cmap='viridis')  
+
+ax.set_xlabel('Process Noise (q)')
+ax.set_ylabel('Measurement Noise (sigma)')
+ax.set_zlabel('Average Euclidean Error')
+ax.set_title('Kalman Filter Error Surface Analysis')
+fig.colorbar(surf)
+
 plt.show()
 
-plt.plot(x_estimate_store[0, :], x_estimate_store[2, :], 'r--', label='Estimated Trajectory')
-plt.xlabel('Position in X')
-plt.ylabel('Position in Y')
-plt.legend()
-plt.title('Comparison of True and Estimated Trajectories in XY Plane')
-plt.grid(True)
-plt.show()
-
-plt.plot(range(numSteps), euclidean_error_store_kalman, 'b', label = 'Euclidean Errors')
-plt.xlabel('Time Step')
-plt.ylabel('Euclidean Error')
-plt.legend()
-plt.title('Euclidean Errors')
-plt.grid(True)
-plt.show()
-
-plt.plot(range(numSteps), euclidean_error_store_observation, 'b', label='Euclidean Errors')
-plt.xlabel('Time Step')
-plt.ylabel('Error')
-plt.title('Euclidean Error Over Time')
-plt.legend()
-plt.grid(True)
-plt.show()
-
-plt.plot(range(numSteps), euclidean_error_store_observation, 'r', label='Observation Sensor')
-plt.plot(range(numSteps), euclidean_error_store_kalman, 'b', label = 'Kalman Filter')
-plt.xlabel('Time Step')
-plt.ylabel('Euclidean Error')
-plt.title('Euclidean Error between Kalman filter and Observation Sensor')
-plt.legend()
-plt.grid(True)
-plt.show()
-
-print("Observation errors",sum(euclidean_error_store_observation)/len(euclidean_error_store_observation)) 
-print("Kalman filter error",sum(euclidean_error_store_kalman)/len(euclidean_error_store_kalman))
