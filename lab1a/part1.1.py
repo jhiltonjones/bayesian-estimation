@@ -155,7 +155,7 @@ Q, Sigma = np.meshgrid(q_values, sigma_values)
 
 fig = plt.figure(figsize=(10, 8))
 ax = fig.add_subplot(111, projection='3d')
-surf = ax.plot_surface(Q, Sigma, average_kalman_errors.T, cmap='viridis')  
+surf = ax.plot_surface(Q, Sigma, average_kalman_errors.T, cmap='gray')  
 
 ax.set_xlabel('Process Noise (q)')
 ax.set_ylabel('Measurement Noise (sigma)')
