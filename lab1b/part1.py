@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 dt = 5  
 totalTime = 100 
 numSteps = int(totalTime / dt) 
-F = np.array([[1, 0, dt, 0],
-              [0, 1, 0, dt],
-              [0, 0, 1, 0],
+F = np.array([[1, dt, 0, 0],
+              [0, 1, 0, 0],
+              [0, 0, 1, dt],
               [0, 0, 0, 1]])  
 
 q = 0.1
@@ -152,14 +152,6 @@ for sensor_idx, (sensor_x, sensor_y) in enumerate(sensor_locations):
 average_euclidean_error_best = np.sum(best_euclidean_errors) / numSteps
 print("Average Euclidean Error for best sensor =", average_euclidean_error_best)
 
-plt.figure(figsize=(12, 6))
-
-plt.plot(best_euclidean_errors, final_mutual_information, label='Mutual Information and Euclidean Error of Best Sensor', color='black', linewidth=2, linestyle='--', alpha=0.5)
-plt.xlabel('Position X')
-plt.ylabel('Position Y')
-plt.title('M vs E')
-plt.legend()
-plt.show()
 
 plt.figure(figsize=(12, 6))
 for sensor_idx, _ in enumerate(sensor_locations):
@@ -186,24 +178,19 @@ plt.show()
 
 plt.figure(figsize=(12, 6))
 for sensor_idx, (sensor_x, sensor_y) in enumerate(sensor_locations):
-    plt.plot(range(numSteps), all_euclidean_errors[sensor_idx, :], label=f'Sensor {sensor_idx+1} Euclidean Error')
-
-plt.plot(range(numSteps), best_euclidean_errors, label='Best Sensor Euclidean Error', color='black', linewidth=2, linestyle='--', alpha=0.5)
-
+    plt.plot(range(smoothed_length), smoothed_all_euclidean_errors[sensor_idx, :], label=f'Sensor {sensor_idx+1} Euclidean Error')
 plt.xlabel('Time Step')
-plt.ylabel('Euclidean Error')
-plt.title('Euclidean Error over Time ')
+plt.ylabel('Moving Average of Euclidean Error')
+plt.title('Moving Average of Euclidean Error over Time for Each Sensor')
 plt.legend()
 plt.show()
 
-
 plt.figure(figsize=(12, 6))
 for sensor_idx, (sensor_x, sensor_y) in enumerate(sensor_locations):
-    plt.plot(range(smoothed_length), smoothed_all_euclidean_errors[sensor_idx, :], label=f'Sensor {sensor_idx+1} Euclidean Error')
-
+    plt.plot(range(smoothed_length), smoothed_all_mutual_information[sensor_idx, :], label=f'Sensor {sensor_idx+1} Mutual Information')
 plt.xlabel('Time Step')
-plt.ylabel('Euclidean Error Moving Average')
-plt.title('Moving Euclidean Error ')
+plt.ylabel('Moving Average of Mutual Information')
+plt.title('Moving Average of Mutual Information over Time for Each Sensor')
 plt.legend()
 plt.show()
 

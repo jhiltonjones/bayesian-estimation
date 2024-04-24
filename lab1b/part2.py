@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 dt = 5  
 totalTime = 100 
 numSteps = int(totalTime / dt) 
-F = np.array([[1, 0, dt, 0],
-              [0, 1, 0, dt],
-              [0, 0, 1, 0],
+F = np.array([[1, dt, 0, 0],
+              [0, 1, 0, 0],
+              [0, 0, 1, dt],
               [0, 0, 0, 1]])  
 
 q = 0.1
@@ -194,7 +194,7 @@ plt.legend()
 plt.show()
 plt.figure(figsize=(12, 6))
 for sensor_idx, (sensor_x, sensor_y) in enumerate(sensor_locations):
-    plt.plot(range(numSteps), all_shannon_entropy[sensor_idx, :], label=f'Sensor {sensor_idx+1} Shannon Entropy')
+    plt.plot(range(1, numSteps), all_shannon_entropy[sensor_idx, 1:], label=f'Sensor {sensor_idx+1} Shannon Entropy')
 
 plt.xlabel('Time Step')
 plt.ylabel('Shannon Entropy')
@@ -202,15 +202,15 @@ plt.title('Shannon Entropy over Time for Observation Noise')
 plt.legend()
 plt.show()
 
-plt.figure(figsize=(12, 6))
-
 
 plt.figure(figsize=(12, 6))
 for sensor_idx, (sensor_x, sensor_y) in enumerate(sensor_locations):
-    plt.plot(range(numSteps), all_euclidean_errors[sensor_idx, :], label=f'Sensor {sensor_idx+1} Euclidean Error')
+    plt.plot(range(1, numSteps), all_euclidean_errors[sensor_idx, 1:], label=f'Sensor {sensor_idx+1} Euclidean Error')
 
 plt.xlabel('Time Step')
 plt.ylabel('Euclidean Error')
-plt.title('Euclidean Error over Time for Sensor\'s in the Same Position')
+plt.title("Euclidean Error over Time for Sensors in the Same Position")
 plt.legend()
 plt.show()
+
+
